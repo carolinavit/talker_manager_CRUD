@@ -16,6 +16,7 @@ const validateAge = require('../middlewares/validateAge');
 const validateTalk = require('../middlewares/validateTalk');
 const validateWatchedAt = require('../middlewares/validateWatchedAt');
 const validateRate = require('../middlewares/validateRate');
+const validateId = require('../middlewares/validateId');
 
 talkerRoute.get('/', async (_req, res) => {
   const data = await readFile(TALKER_DATA_PATH);
@@ -44,11 +45,7 @@ talkerRoute.post(
   validateRate, 
  async (req, res) => {
     const data = await readFile(TALKER_DATA_PATH);
-    const {
-      name,
-      age,
-      talk: { watchedAt, rate },
-    } = req.body;
+    const { name, age, talk: { watchedAt, rate } } = req.body;
     const addTalker = {
       id: data.length + 1,
       name,
@@ -58,6 +55,28 @@ talkerRoute.post(
     const allTalkers = JSON.stringify([...data, addTalker]);
     await fs.writeFile(TALKER_DATA_PATH, allTalkers);
     res.status(201).json(addTalker);
+  },
+);
+
+talkerRoute.put(
+  '/:id',
+  auth,
+  validateId,
+  validateName,
+  validateAge,
+  validateTalk,
+  validateWatchedAt,
+  validateRate,
+  async (req, res) => {
+    const { id } = req.params;
+    const { name, age, talk: { watchedAt, rate } } = req.body;
+    const talkers = await readFile(TALKER_DATA_PATH);
+    const filterId = talkers.findIndex((e) => e.id === +id);
+    talkers[filterId] = { id: Number(id), name, age, talk: { watchedAt, rate } };
+     const updatedTalkers = JSON.stringify(talkers);
+     await fs.writeFile(TALKER_DATA_PATH, updatedTalkers);
+    
+    return res.status(200).json(talkers[filterId]);
   },
 );
 
