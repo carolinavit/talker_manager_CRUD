@@ -4,6 +4,8 @@ const talkerRoute = Router();
 
 const path = require('path');
 
+const fs = require('fs').promises;
+
 const readFile = require('../utils/readFile');
 
 const TALKER_DATA_PATH = path.resolve(__dirname, '../talker.json');
@@ -39,14 +41,23 @@ talkerRoute.post(
   validateAge,
   validateTalk,
   validateWatchedAt,
-  validateRate,
-  (req, res) => {
-    /* const {
-    name,
+  validateRate, 
+ async (req, res) => {
+    const data = await readFile(TALKER_DATA_PATH);
+    const {
+      name,
       age,
       talk: { watchedAt, rate },
-    } = req.body; */
-    res.status(201).json({ message: 'Atividade registrada com sucesso!' });
+    } = req.body;
+    const addTalker = {
+      id: data.length + 1,
+      name,
+      age,
+      talk: { watchedAt, rate },
+    };
+    const allTalkers = JSON.stringify([...data, addTalker]);
+    await fs.writeFile(TALKER_DATA_PATH, allTalkers);
+    res.status(201).json(addTalker);
   },
 );
 
