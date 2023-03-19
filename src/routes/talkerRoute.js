@@ -80,4 +80,13 @@ talkerRoute.put(
   },
 );
 
+talkerRoute.delete('/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const data = await readFile(TALKER_DATA_PATH);
+  const filterId = data.find((e) => e.id !== +id);
+  const updatedTalkers = JSON.stringify(filterId);
+  await fs.writeFile(TALKER_DATA_PATH, updatedTalkers);
+  return res.status(204).end();
+});
+
 module.exports = talkerRoute;
